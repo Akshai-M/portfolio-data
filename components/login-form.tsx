@@ -4,7 +4,7 @@ import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoaderCircle, Terminal } from "lucide-react";
 import { useAuth } from "./auth-provider";
-import { PortfolioApiError, PORTFOLIO_API_BASE } from "@/lib/api";
+import { PortfolioApiError } from "@/lib/api";
 
 export function LoginForm() {
   const router = useRouter();
