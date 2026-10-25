@@ -1,18 +1,37 @@
 import type { ExportResponse } from "./types";
 
+const LIVEFOLIO_PROD = "https://livefolio.me";
+
+function normalizeUrl(url: string): string {
+  return url.trim().replace(/\/$/, "");
+}
+
+function isLocalhostUrl(url: string): boolean {
+  return /https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(url);
+}
+
+function isProductionRuntime(): boolean {
+  return process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
+}
+
 export function livefolioBaseUrl(): string {
-  return (
-    process.env.PORTFOLIO_API_BASE ??
-    "https://localhost:3000"
-  ).replace(/\/$/, "");
+  const configured = normalizeUrl(process.env.PORTFOLIO_API_BASE ?? "");
+  if (isProductionRuntime()) {
+    if (configured && !isLocalhostUrl(configured)) return configured;
+    return LIVEFOLIO_PROD;
+  }
+  return configured || "http://localhost:3000";
 }
 
 export function livefolioOrigin(request: Request): string {
-  return (
-    process.env.PORTFOLIO_EXPORT_ORIGIN ??
-    request.headers.get("origin")?.trim() ??
-    "https://localhost:3000"
-  ).replace(/\/$/, "");
+  const configured = normalizeUrl(process.env.PORTFOLIO_EXPORT_ORIGIN ?? "");
+  const fromRequest = normalizeUrl(request.headers.get("origin") ?? "");
+  if (isProductionRuntime()) {
+    if (configured && !isLocalhostUrl(configured)) return configured;
+    if (fromRequest && !isLocalhostUrl(fromRequest)) return fromRequest;
+    return LIVEFOLIO_PROD;
+  }
+  return configured || fromRequest || "http://localhost:3000";
 }
 
 export type LivefolioResult =
